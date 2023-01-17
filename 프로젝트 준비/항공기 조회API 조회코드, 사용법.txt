@@ -1,0 +1,13 @@
+End Point		http://openapi.airport.co.kr/service
+
+일반 인증키	nDhMuVlTjdi8o8fsM6DaNtLEEhkW0TxAk8SNjcd7klLbyF%2BeTaOnCs4rmxtPxjX18FHakEfMX%2Fw3GYNT8KAimw%3D%3D
+(Encoding)	
+
+일반 인증키	nDhMuVlTjdi8o8fsM6DaNtLEEhkW0TxAk8SNjcd7klLbyF+eTaOnCs4rmxtPxjX18FHakEfMX/w3GYNT8KAimw==
+(Decoding)	
+
+API홈페이지	https://www.data.go.kr/iim/api/selectAPIAcountView.do
+
+
+//API JASON으로 받는방법	(바로 사용할수 있을정도로 잘 정리해둔 블로그)
+https://valuelog.tistory.com/43

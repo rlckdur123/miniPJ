@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="ReservationDAO">
+	<select id="getPassengerList" parameterType="map" resultType="int">
+	<![CDATA[
+		SELECT C.PASSENGER_ID
+		   FROM (
+		            SELECT @ROWNUM:=@ROWNUM + 1 AS ROWNUM,
+		                  A.PASSENGER_ID
+		               FROM PASSENGER A,
+		                   (SELECT @ROWNUM:=0) B
+		               WHERE A.USER_ID = #{userId}
+		               ORDER BY PASSENGER_ID DESC
+		        ) C
+		   WHERE ROWNUM <= #{passengerCnt}
+	]]>
+	</select>
+	
+	<select id="getSeatNoList" parameterType="map" resultType="string">
+	<![CDATA[
+		WITH RECURSIVE GENERATE_NUMBERS AS (
+		   SELECT B.SEAT_ST_NO AS NUM
+		      FROM (
+		            SELECT DISTINCT SEAT_ST_NO
+		                  FROM SEAT
+		               WHERE FLIGHT_ID = #{flightId}
+		                 AND SEAT_ID = #{seatId}
+		             ) B
+		   UNION ALL
+		    SELECT NUM + 1
+		      FROM GENERATE_NUMBERS,
+		          (
+		            SELECT DISTINCT SEAT_END_NO
+		                  FROM SEAT
+		               WHERE FLIGHT_ID = #{flightId}
+		                 AND SEAT_ID = #{seatId}
+		          ) C
+		      WHERE NUM + 1 <= C.SEAT_END_NO
+		)
+		SELECT BB.SEAT_NO 
+		   FROM (
+		         SELECT CONCAT(AA.SEAT_COL, NUM) AS SEAT_NO
+		            FROM SEAT AA,
+		                GENERATE_NUMBERS
+		            WHERE FLIGHT_ID = #{flightId}
+		              AND SEAT_ID = #{seatId}
+		            ORDER BY SEAT_NO
+		       ) BB
+		   WHERE BB.SEAT_NO NOT IN (
+		                        SELECT CC.SEAT_NO
+		                           FROM RESERVATION CC
+		                                    WHERE CC.FLIGHT_ID = #{flightId}
+		                             AND CC.SEAT_ID = #{seatId}
+		                     )
+		   LIMIT #{passengerCnt}
+	]]>
+	</select>
+	
+	<insert id="insertReservation" parameterType="list">
+		INSERT INTO RESERVATION(
+		   RESERVATION_ID
+		   , PASSENGER_ID
+		   , FLIGHT_ID
+		   , SEAT_ID
+		   , DEPART_DATETIME
+		   , ARRIVAL_DATETIME
+		   , SEAT_NO
+		   , USER_ID
+		   , SEAT_COL
+		) VALUES
+		<foreach collection="list" item="reservation" separator=",">
+			(
+				#{reservation.reservationId}
+			  , #{reservation.passengerId}
+			  , #{reservation.flightId}
+			  , #{reservation.seatId}
+			  , #{reservation.departDatetime}
+			  , #{reservation.arrivalDatetime}
+			  , #{reservation.seatNo}
+			  , #{reservation.userId}
+			  , SUBSTRING(#{reservation.seatNo}, 1, 1)
+			)
+		</foreach>
+	</insert>
+	
+	<select id="getReservationId" resultType="int">
+		SELECT IFNULL(MAX(RESERVATION_ID), 0) + 1
+			FROM RESERVATION
+	</select>
+
+</mapper>

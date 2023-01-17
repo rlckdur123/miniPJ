@@ -1,0 +1,68 @@
+USER
+-USER_ROLE 행으로 일반 사용자(USER)와 관리자(ADMIN) 구분
+
+SEAT
+-FLIGHT_ID: 비행편
+-SEAT_ID: 1, 2, 3 으로 등급 나눔
+-SEAT_PRICE: 한 비행편에 한 등급은 같은 가격
+-SEAT_TOTAL: 한 비행편에 한 등급의 총 좌석 수
+-SEAT_COL: 좌석 행(EX: A, B, C, D)
+-SEAT_ST_NO: 그 등급 좌석의 시작 번호
+-SEAT_END_NO: 그 등급 좌석의 끝 번호
+
+-좌석: SEAT_ID 에서 등급, SEAT_ST_NO와 SEAT_END_NO사이에서 숫자(열), SEAT_COL로 알파벳(행)
+   EX) 3등급, 20과 100 사이에 35번, C행 => 이코노미 35C
+
+RESERVATION
+-UPDATE_RESERVATION: Y면 예약이 취소된 상태, N 이면 예약상태
+-SEAT_NO: 좌석은 랜덤으로 배정, 선택된 등급에서 빈 자리를 
+쿼리(SEAT_ST_NO BETWEEN SEAT_END_NO, NOT IN)로 찾아서 배정, 최종 좌석 예시) 이코노미 35C
+-DEPART_DATETIME, ARRIVAL_DATETIME: JS로 사용자가 선택한 날짜와 선택한 항공편 
+ 출발시간, 도착시간(FLIGHT_TABLE에서 DEPART_TIME, ARRIVAL_TIME)을 합쳐서 
+ ('YYYY-MM-DD HH:MM:SS)로 RESERVATION 테이블에 삽입
+
+FLIGHT
+-AIRPORT_DPT, AIRPORT_ARV 의 데이터는 AIRPORT_CODE로 한다. 예)GMP, CJU
+
+-화면에서 예약정보를 보여줄 때 출발 공항, 도착 공항을 보여주려면 
+ 쿼리로 FLIGHT_ID를 이용해서 보여주면 됨
+ 이 때, FLIGHT 테이블에 출발 공항, 도착 공항은 AIRPORT_CODE로 되어있기때문에 
+ 그 코드에 맞는 공항이름을 보여주려면 이 밑 쿼리 사용
+
+SELECT A.*,
+      B.AIRPORT_DPT,
+       D.AIRPORT_DPT_NM,
+       B.AIRPORT_ARV,
+       G.AIRPORT_ARV_NM,
+       C.SEAT_PRICE
+   FROM 
+      (
+         SELECT *
+            FROM RESERVATION
+            WHERE RESERVATION_ID = 1
+       ) A,
+         FLIGHT B,
+       SEAT C,
+         (
+         SELECT E.AIRPORT_NAME AS AIRPORT_DPT_NM,
+               F.FLIGHT_ID
+            FROM AIRPORT E,
+                FLIGHT F
+            WHERE E.AIRPORT_CODE = F.AIRPORT_DPT
+         ) D,
+         (
+         SELECT E.AIRPORT_NAME AS AIRPORT_ARV_NM,
+               F.FLIGHT_ID
+            FROM AIRPORT E,
+                FLIGHT F
+            WHERE E.AIRPORT_CODE = F.AIRPORT_ARV
+         ) G
+   WHERE A.FLIGHT_ID = B.FLIGHT_ID
+      AND A.FLIGHT_ID = C.FLIGHT_ID
+      AND A.SEAT_ID = C.SEAT_ID
+      AND B.FLIGHT_ID = D.FLIGHT_ID
+      AND B.FLIGHT_ID = G.FLIGHT_ID;
+
+
+
+

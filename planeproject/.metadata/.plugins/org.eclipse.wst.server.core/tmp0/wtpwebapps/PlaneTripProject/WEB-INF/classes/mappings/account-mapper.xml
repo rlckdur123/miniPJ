@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="AccountDAO">
+	<!-- 쿼리 작성 영역 -->
+	<!-- 이름 추가 쿼리 -->
+	
+	<select id="idCheck" parameterType="string" resultType="int">
+		select count(EMAIL)
+			from user
+			where EMAIL = #{email}
+	</select>
+	
+	<insert id="join" parameterType="user">
+	<![CDATA[
+		insert into user(
+			EMAIL,
+			PASSWORD,
+			LAST_NAME,
+			FIRST_NAME,
+			FULL_NAME,
+			GENDER,
+			BIRTHDATE,
+			PHONE,
+			ADDRESS
+		) values (
+			#{email},
+			#{password},
+			#{lastName},
+			#{firstName},
+			concat(#{lastName},#{firstName}),
+			#{gender},
+			#{birthDate},
+			#{phone},
+			#{address}
+		)
+	]]>
+	</insert>
+	
+	<select id="login" parameterType="user" resultType="user">
+	<![CDATA[
+		select USER_ID
+			 , EMAIL
+			 , FULL_NAME
+			 , GENDER
+			 , BIRTHDATE
+			 , PHONE
+			 , ADDRESS
+			 , USER_ROLE
+			 , LAST_NAME
+			 , FIRST_NAME
+			from user
+			where EMAIL = #{email}
+			  and PASSWORD = #{password}
+	]]>
+	</select>
+	
+	<select id="findId" parameterType="user" resultType="user">
+		<![CDATA[select * from user where FULL_NAME=#{fullName} and PHONE=#{phone}]]>
+	</select>
+	
+	<select id="findPassword" parameterType="user" resultType="user">
+		<![CDATA[select * from user where EMAIL=#{email} and FULL_NAME=#{fullName} and PHONE=#{phone}]]>
+	</select>
+	
+	<update id="updateInfo" parameterType="user">
+	<![CDATA[
+		update user 
+	]]>
+		<set>
+			<if test="password != null and password != ''">PASSWORD=#{password},</if>
+			<if test="lastName != null and lastName != ''">LAST_NAME=#{lastName}, </if>
+			<if test="firstName != null and firstName != ''">FIRST_NAME=#{firstName},</if>
+			<if test="(lastName != null and lastName != '') or (firstName != null and firstName != '')">FULL_NAME=CONCAT(#{lastName}, #{firstName}),</if>
+			<if test="birthDate != null and birthDate != ''">BIRTHDATE=#{birthDate},</if>
+			<if test="phone != null and phone != ''">PHONE=#{phone},</if>
+			<if test="address != null and address != ''">ADDRESS=#{address},</if>
+		</set>
+		where USER_ID=#{userId}
+	</update>
+	
+	<delete id="quit" parameterType="user">
+		<![CDATA[delete from user where USER_ID=#{userId}]]>
+	</delete>
+	
+	<select id="getUserInfo" parameterType="user" resultType="user">
+	<![CDATA[
+		select USER_ID
+			 , EMAIL
+			 , FULL_NAME
+			 , GENDER
+			 , BIRTHDATE
+			 , PHONE
+			 , ADDRESS
+			 , USER_ROLE
+			 , LAST_NAME
+			 , FIRST_NAME
+			from user
+			where USER_ID = #{userId}
+	]]>
+	</select>
+	
+	<select id="currentPwdCheck" parameterType="user" resultType="int">
+		select count(PASSWORD)
+			from user
+			where USER_ID = #{userId} and PASSWORD = #{currentPassword}
+	</select>
+	
+	<select id="getMyReservation" parameterType="int" resultType="camelHashMap">
+		SELECT A.*
+	    , CONCAT(B.LAST_NAME, B.FIRST_NAME) AS PASSENGER_NAME
+	     , D.AIRPORT_DPT_NM
+	     , E.AIRPORT_ARV_NM
+	     , F.SEAT_PRICE
+	     FROM (   
+	            SELECT *
+	               FROM RESERVATION
+	                    WHERE USER_ID = ${loginUser}
+	        ) A, 
+	          PASSENGER B,
+	          FLIGHT C,
+	          (
+	           SELECT H.AIRPORT_NAME AS AIRPORT_DPT_NM,
+	                I.FLIGHT_ID
+	            FROM AIRPORT H,
+	                FLIGHT I
+	            WHERE H.AIRPORT_CODE = I.AIRPORT_DPT
+	        ) D,
+	        (
+	           SELECT H.AIRPORT_NAME AS AIRPORT_ARV_NM,
+	                I.FLIGHT_ID
+	            FROM AIRPORT H,
+	                FLIGHT I
+	            WHERE H.AIRPORT_CODE = I.AIRPORT_ARV
+	        ) E,
+	          (
+	            SELECT DISTINCT SEAT_PRICE
+	                , FLIGHT_ID
+	                     , SEAT_ID               
+	               FROM SEAT
+	        ) F
+	    WHERE A.PASSENGER_ID = B.PASSENGER_ID
+	       AND A.FLIGHT_ID = C.FLIGHT_ID
+	       AND A.FLIGHT_ID = F.FLIGHT_ID
+	       AND A.SEAT_ID = F.SEAT_ID
+	       AND C.FLIGHT_ID = D.FLIGHT_ID
+	       AND C.FLIGHT_ID = E.FLIGHT_ID;
+	</select>
+</mapper>

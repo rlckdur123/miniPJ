@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="SeatDAO">
+	<!-- 쿼리 작성 영역 -->
+	<!-- 이름 추가 쿼리 -->
+	<!-- 좌석 조회 쿼리 -->
+	<select id="viewSeatList" parameterType="int" resultType="seat">
+		<![CDATA[
+		SELECT * FROM SEAT
+		WHERE FLIGHT_ID = #{flightId}
+		]]>
+	</select>
+	<!-- 좌석 끝 번호 얻어오기 -->
+	<select id="viewSeatCount" parameterType="int" resultType="int">
+		SELECT SUM(SEAT_END_NO) FROM SEAT
+		WHERE FLIGHT_ID = #{flightId} GROUP BY SEAT_ID
+	</select>
+	
+	<!-- 비행편의 좌석 클래스 얻어오기 -->
+	<select id="viewSeatClass" parameterType="int" resultType="int">
+		<![CDATA[
+		SELECT SEAT_ID FROM SEAT 
+		WHERE FLIGHT_ID = #{flightId} 
+		GROUP BY SEAT_END_NO
+		]]>
+	</select>
+	<!-- 클래스 하나의 좌석 남은 개수 얻어오기 -->
+ 	<select id="viewSeatRemain" parameterType="map" resultType="int">
+SELECT DISTINCT A.SEAT_TOTAL - IFNULL(C.R_CNT, 0) AS REMAIN_SEAT
+   FROM 
+	(
+		SELECT DISTINCT SEAT_TOTAL,
+        FLIGHT_ID,
+        SEAT_ID 
+        FROM SEAT
+        WHERE FLIGHT_ID = #{flightId}
+        AND SEAT_ID = #{seatId}
+    ) A
+      LEFT OUTER JOIN(
+         SELECT COUNT(*) AS R_CNT
+             , B.FLIGHT_ID
+				, B.SEAT_ID
+            FROM RESERVATION B
+                WHERE B.FLIGHT_ID = #{flightId}
+                  AND B.SEAT_ID = #{seatId}
+       ) C
+   ON A.FLIGHT_ID = C.FLIGHT_ID
+      AND A.SEAT_ID = C.SEAT_ID;
+	</select> 
+
+	<select id="viewSeatPrice" parameterType="int" resultType="int">
+		SELECT SEAT_PRICE FROM SEAT 
+		WHERE FLIGHT_ID = #{flightId} 
+		GROUP BY SEAT_ID;
+	</select>
+</mapper>

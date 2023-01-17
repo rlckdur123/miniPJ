@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="PassengerDAO">
+	<!-- 쿼리 작성 영역 -->
+	<!-- 승객 정보 insert문 -->
+	<insert id="insertPassenger" parameterType="passenger">
+		INSERT INTO PASSENGER(
+			PASSENGER_ID,
+			FIRST_NAME,
+			LAST_NAME,
+			PHONE,
+			BIRTHDATE,
+			GENDER,
+			USER_ID
+		) VALUES (
+			(SELECT IFNULL(MAX(A.PASSENGER_ID), 0) + 1 FROM PASSENGER A),
+			#{firstName},
+			#{lastName},
+			#{phone},
+			#{birthDate},
+			#{gender},
+			#{userID}
+		)
+	</insert>
+	
+	
+	<!-- 이름 추가 쿼리 -->
+	
+</mapper>

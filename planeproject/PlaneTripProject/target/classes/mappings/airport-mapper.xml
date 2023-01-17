@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 보편적으로 사용하는 방법 꼭 그런 건 아님 -->
+<mapper namespace="AirportDAO">
+	<!-- 쿼리작성 영역 꿔리 짜기 -->
+	<select id="getAirportList" resultType="airport">
+		SELECT *
+			FROM AIRPORT
+	</select>
+	
+	<select id="getAirportInfo" parameterType="airport" resultType="airport">
+		SELECT *
+			FROM AIRPORT
+			WHERE AIRPORT_ID = #{airportId}
+	</select>
+	
+</mapper>

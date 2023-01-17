@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 보편적으로 사용하는 방법 꼭 그런 건 아님 -->
+<mapper namespace="BoardDAO">
+	<!-- 쿼리작성 영역 꿔리 짜기 -->
+	<insert id="addBoard" parameterType="board">
+		<selectKey resultType="int" keyProperty="boardId" order="BEFORE">
+			SELECT IFNULL(MAX(BOARD_ID),0) + 1 FROM BOARD
+		</selectKey>
+		INSERT INTO BOARD (
+			BOARD_ID,
+			USER_ID,
+			BOARD_TITLE,
+			BOARD_CONTENT,
+			BOARD_COUNT,
+			REGDATE
+		)
+		VALUES(
+			#{boardId},
+		 	#{userId}, 
+			#{boardTitle},
+			#{boardContent},
+			0,
+			now()
+		     )		
+	</insert>
+	
+	<!-- #{} : 변수 빼오는 방식//  resultType : 리턴 타입있을 때(select)-->	
+	<select id="getBoard" parameterType="int" resultType="board">
+		SELECT A.*
+		     , B.FULL_NAME
+			FROM BOARD A
+			   , USER B
+			WHERE BOARD_Id = #{boardId}
+			  AND A.USER_ID = B.USER_ID
+	</select>
+	
+	<select id="viewList" parameterType="map" resultType="board">
+	<![CDATA[
+	SELECT C.*
+		FROM
+			(
+				SELECT A.*
+					 , B.FULL_NAME
+					FROM BOARD A
+					   , USER B
+					WHERE A.USER_ID = B.USER_ID
+			) C
+	]]>		
+		 	<if test="boardSearch.searchKeyword != null and boardSearch.searchKeyword != ''">
+		 	WHERE 1 = 0 
+					OR C.BOARD_TITLE LIKE CONCAT('%', #{boardSearch.searchKeyword}, '%')
+					OR C.BOARD_CONTENT LIKE CONCAT('%', #{boardSearch.searchKeyword}, '%')	
+					OR C.FULL_NAME LIKE CONCAT('%', #{boardSearch.searchKeyword}, '%')		
+			</if>
+			ORDER BY C.BOARD_ID DESC
+ 			LIMIT #{cri.amount} OFFSET #{cri.startNum}	
+	</select>
+	
+	<update id="updateBoardCnt" parameterType="int">
+		UPDATE BOARD
+		SET BOARD_COUNT= BOARD_COUNT+1 
+		WHERE BOARD_ID = #{boardId}
+	</update>
+	
+
+		<!-- SET BOARD_TITLE = #{boardTitle} -->
+	<update id="updateBoard" parameterType="board">
+		UPDATE BOARD
+			SET BOARD_CONTENT = #{boardContent}
+			WHERE BOARD_ID = #{boardId}			
+	</update>
+	
+	<delete id="deleteBoard" parameterType="int"> 
+		DELETE FROM BOARD
+			WHERE BOARD_ID = #{boardId}
+	</delete>
+	
+	<select id="getBoardTotalCnt" parameterType="map" resultType="int">
+		SELECT COUNT(*)
+		 	FROM
+			(
+				SELECT A.*
+					 , B.FULL_NAME
+					FROM BOARD A
+					   , USER B
+					WHERE A.USER_ID = B.USER_ID
+			) C		
+		 	<if test="searchKeyword != null and searchKeyword != ''">
+		 	WHERE 1 = 0 
+					OR C.BOARD_TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+					OR C.BOARD_CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')	
+					OR C.FULL_NAME LIKE CONCAT('%', #{searchKeyword}, '%')		
+			</if>	
+	</select>
+	
+	<update id="insertReply" parameterType="board">
+		UPDATE BOARD 
+		SET BOARD_REPLY = #{boardReply}
+		WHERE BOARD_ID = #{boardId}
+	</update>
+			
+</mapper>
